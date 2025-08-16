@@ -22,7 +22,7 @@ public interface IAccountService extends IService<Account> {
     /**
      * 分页获取账户列表
      */
-    IPage<Account> getAccountPage(Page<Account> page);
+    IPage<Account> getAccountPage(Page<Account> page, String accountId);
 
     /**
      * 修改账户信息

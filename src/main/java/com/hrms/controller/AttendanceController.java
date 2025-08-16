@@ -30,9 +30,9 @@ public class AttendanceController {
     @GetMapping
     public IPage<Attendance> getAttendanceRecords(@RequestParam(defaultValue = "1") int page,
                                                   @RequestParam(defaultValue = "10") int size,
-                                                  @RequestParam(required = false) String searchBy,
-                                                  @RequestParam(required = false) String keyword) {
-        return attendanceService.getAttendanceRecords(new Page<>(page, size), searchBy, keyword);
+                                                  @RequestParam(required = false) Long employeeId,
+                                                  @RequestParam(required = false) String date) {
+        return attendanceService.getAttendanceRecords(new Page<>(page, size), employeeId, date);
     }
 
     /**
@@ -75,7 +75,8 @@ public class AttendanceController {
      * 获取待审批的请假记录
      */
     @GetMapping("/pendingLeave")
-    public List<Attendance> getPendingLeaveRequests() {
-        return attendanceService.getPendingLeaveRequests();
+    public IPage<Attendance> getPendingLeaveRequests(@RequestParam(defaultValue = "1") int page,
+                                                     @RequestParam(defaultValue = "10") int size) {
+        return attendanceService.getPendingLeaveRequests(new Page<>(page, size));
     }
 }

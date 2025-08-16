@@ -1,5 +1,6 @@
 package com.hrms.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hrms.entity.Account;
@@ -29,8 +30,14 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
     }
 
     @Override
-    public IPage<Account> getAccountPage(Page<Account> page) {
-        return baseMapper.selectPage(page, null); // 无条件分页查询
+    public IPage<Account> getAccountPage(Page<Account> page, String accountId) {
+        QueryWrapper<Account> queryWrapper = new QueryWrapper<>();
+        
+        if (accountId != null && !accountId.trim().isEmpty()) {
+            queryWrapper.eq("id", accountId);
+        }
+        
+        return baseMapper.selectPage(page, queryWrapper);
     }
 
     @Override

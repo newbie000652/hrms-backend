@@ -27,16 +27,28 @@ import java.util.List;
 @Service
 public class AttendanceServiceImpl extends ServiceImpl<AttendanceMapper, Attendance> implements IAttendanceService {
     @Override
-    public IPage<Attendance> getAttendanceRecords(Page<Attendance> page, String searchBy, String keyword) {
+    public IPage<Attendance> getAttendanceRecords(Page<Attendance> page, Long employeeId, String date) {
         QueryWrapper<Attendance> queryWrapper = new QueryWrapper<>();
 
-        if ("id".equalsIgnoreCase(searchBy) && keyword != null) {
-            queryWrapper.eq("employee_id", keyword);
-        } else if ("name".equalsIgnoreCase(searchBy) && keyword != null) {
-            queryWrapper.like("action", keyword); // 假设 "action" 字段包含员工操作描述
+        if (employeeId != null) {
+            queryWrapper.eq("employee_id", employeeId);
+        }
+        if (date != null && !date.trim().isEmpty()) {
+            queryWrapper.eq("DATE(time)", date);
         }
 
-        return baseMapper.selectPage(page, queryWrapper);
+        // 手动计算总数
+        Long total = baseMapper.selectCount(queryWrapper);
+        page.setTotal(total);
+        page.setPages((long) Math.ceil((double) total / page.getSize()));
+
+        // 手动应用LIMIT和OFFSET
+        long offset = (page.getCurrent() - 1) * page.getSize();
+        queryWrapper.last("LIMIT " + page.getSize() + " OFFSET " + offset);
+
+        List<Attendance> records = baseMapper.selectList(queryWrapper);
+        page.setRecords(records); // 手动设置记录
+        return page;
     }
 
     @Override
@@ -108,10 +120,22 @@ public class AttendanceServiceImpl extends ServiceImpl<AttendanceMapper, Attenda
     }
 
     @Override
-    public List<Attendance> getPendingLeaveRequests() {
+    public IPage<Attendance> getPendingLeaveRequests(Page<Attendance> page) {
         QueryWrapper<Attendance> query = new QueryWrapper<>();
         query.eq("status", "请假待审批");
-        return this.list(query);
+        
+        // 手动计算总数
+        Long total = baseMapper.selectCount(query);
+        page.setTotal(total);
+        page.setPages((long) Math.ceil((double) total / page.getSize()));
+
+        // 手动应用LIMIT和OFFSET
+        long offset = (page.getCurrent() - 1) * page.getSize();
+        query.last("LIMIT " + page.getSize() + " OFFSET " + offset);
+
+        List<Attendance> records = baseMapper.selectList(query);
+        page.setRecords(records); // 手动设置记录
+        return page;
     }
 
     @Override

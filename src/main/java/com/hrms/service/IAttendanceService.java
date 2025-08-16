@@ -19,7 +19,7 @@ public interface IAttendanceService extends IService<Attendance> {
     /**
      * 分页获取考勤记录，支持条件搜索
      */
-    IPage<Attendance> getAttendanceRecords(Page<Attendance> page, String searchBy, String keyword);
+    IPage<Attendance> getAttendanceRecords(Page<Attendance> page, Long employeeId, String date);
 
     /**
      * 签到操作
@@ -44,7 +44,7 @@ public interface IAttendanceService extends IService<Attendance> {
     /**
      * 获取所有待审批的请假记录
      */
-    List<Attendance> getPendingLeaveRequests();
+    IPage<Attendance> getPendingLeaveRequests(Page<Attendance> page);
 
     /**
      * 获取指定员工当月的考勤记录

@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -51,7 +52,50 @@ public class SalaryServiceImpl extends ServiceImpl<SalaryMapper, Salary> impleme
     @Override
     public IPage<Salary> getSalariesByCondition(int page, int size, String searchBy, String keyword) {
         Page<Salary> salaryPage = new Page<>(page, size);
-        return baseMapper.getSalariesByCondition(salaryPage, searchBy, keyword);
+        
+        QueryWrapper<Salary> queryWrapper = new QueryWrapper<>();
+        
+        // 添加调试日志
+        System.out.println("SalaryServiceImpl.getSalariesByCondition - page: " + page + ", size: " + size);
+        System.out.println("SalaryServiceImpl.getSalariesByCondition - searchBy: " + searchBy + ", keyword: " + keyword);
+        
+        // 暂时简化查询逻辑，先确保分页能工作
+        if (searchBy != null && keyword != null && !keyword.trim().isEmpty()) {
+            if ("id".equals(searchBy)) {
+                queryWrapper.eq("employee_id", keyword);
+            } else if ("name".equals(searchBy)) {
+                // 通过员工姓名搜索，需要关联查询
+                queryWrapper.inSql("employee_id", 
+                    "SELECT id FROM employee WHERE name LIKE '%" + keyword + "%'");
+            }
+        }
+        
+        // 先查询总数
+        Long total = baseMapper.selectCount(queryWrapper);
+        System.out.println("SalaryServiceImpl.getSalariesByCondition - total records: " + total);
+        
+        // 测试直接查询所有数据
+        List<Salary> allSalaries = baseMapper.selectList(queryWrapper);
+        System.out.println("SalaryServiceImpl.getSalariesByCondition - all salaries count: " + allSalaries.size());
+        
+        // 尝试分页查询
+        IPage<Salary> result = baseMapper.selectPage(salaryPage, queryWrapper);
+        System.out.println("SalaryServiceImpl.getSalariesByCondition - result records: " + result.getRecords().size());
+        System.out.println("SalaryServiceImpl.getSalariesByCondition - result total: " + result.getTotal());
+        System.out.println("SalaryServiceImpl.getSalariesByCondition - result pages: " + result.getPages());
+        
+        // 如果分页查询失败，尝试使用XML中的方法
+        if (result.getTotal() == 0 && total > 0) {
+            System.out.println("SalaryServiceImpl.getSalariesByCondition - Trying XML method");
+            try {
+                result = baseMapper.getSalariesByCondition(salaryPage, searchBy, keyword);
+                System.out.println("SalaryServiceImpl.getSalariesByCondition - XML method result: " + result.getRecords().size());
+            } catch (Exception e) {
+                System.out.println("SalaryServiceImpl.getSalariesByCondition - XML method failed: " + e.getMessage());
+            }
+        }
+        
+        return result;
     }
 
     /**

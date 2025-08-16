@@ -47,27 +47,65 @@ public class EmployeeServiceImpl extends ServiceImpl<EmployeeMapper, Employee> i
 
     @Override
     public IPage<Employee> getActiveEmployeesByCondition(Page<Employee> page, Long id, String name, Byte levelId, Long departmentId) {
-        return baseMapper.selectPage(page,
-                new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Employee>()
-                        .eq(id != null, "id", id)
-                        .like(name != null && !name.trim().isEmpty(), "name", name)
-                        .eq(levelId != null, "level_id", levelId)
-                        .eq(departmentId != null, "department_id", departmentId)
-                        .eq("is_active", 1)
-        );
+        // 构建查询条件
+        com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Employee> queryWrapper = 
+            new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Employee>()
+                .eq(id != null, "id", id)
+                .like(name != null && !name.trim().isEmpty(), "name", name)
+                .eq(levelId != null, "level_id", levelId)
+                .eq(departmentId != null, "department_id", departmentId)
+                .eq("is_active", 1);
+        
+        // 先查询总记录数
+        Long total = baseMapper.selectCount(queryWrapper);
+        
+        // 设置分页信息
+        page.setTotal(total);
+        page.setPages((long) Math.ceil((double) total / page.getSize()));
+        
+        // 手动实现分页查询，确保只返回当前页数据
+        long offset = (page.getCurrent() - 1) * page.getSize();
+        queryWrapper.last("LIMIT " + page.getSize() + " OFFSET " + offset);
+        
+        // 查询当前页数据
+        List<Employee> records = baseMapper.selectList(queryWrapper);
+        
+        // 创建分页结果
+        page.setRecords(records);
+        
+        return page;
     }
 
 
     @Override
     public IPage<Employee> getInactiveEmployeesByCondition(Page<Employee> page, Long id, String name, Byte levelId, Long departmentId) {
-        return baseMapper.selectPage(page,
-                new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Employee>()
-                        .eq(id != null, "id", id)
-                        .like(name != null, "name", name)
-                        .eq(levelId != null, "level_id", levelId)
-                        .eq(departmentId != null, "department_id", departmentId)
-                        .eq("is_active", 0)
-        );
+        // 构建查询条件
+        com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Employee> queryWrapper = 
+            new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Employee>()
+                .eq(id != null, "id", id)
+                .like(name != null, "name", name)
+                .eq(levelId != null, "level_id", levelId)
+                .eq(departmentId != null, "department_id", departmentId)
+                .eq("is_active", 0);
+        
+        // 先查询总记录数
+        Long total = baseMapper.selectCount(queryWrapper);
+        
+        // 设置分页信息
+        page.setTotal(total);
+        page.setPages((long) Math.ceil((double) total / page.getSize()));
+        
+        // 手动实现分页查询，确保只返回当前页数据
+        long offset = (page.getCurrent() - 1) * page.getSize();
+        queryWrapper.last("LIMIT " + page.getSize() + " OFFSET " + offset);
+        
+        // 查询当前页数据
+        List<Employee> records = baseMapper.selectList(queryWrapper);
+        
+        // 创建分页结果
+        page.setRecords(records);
+        
+        return page;
     }
 
     @Override

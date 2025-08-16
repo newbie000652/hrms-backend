@@ -27,8 +27,9 @@ public class AccountController {
      */
     @GetMapping
     public IPage<Account> getAccounts(@RequestParam(defaultValue = "1") int page,
-                                      @RequestParam(defaultValue = "10") int size) {
-        return accountService.getAccountPage(new Page<>(page, size));
+                                      @RequestParam(defaultValue = "10") int size,
+                                      @RequestParam(required = false) String accountId) {
+        return accountService.getAccountPage(new Page<>(page, size), accountId);
     }
 
     /**
