@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hrms.mapper.EmployeeMapper">
+    <!-- 查询所有在职员工 -->
+    <select id="selectActiveEmployees" resultType="com.hrms.entity.Employee">
+        SELECT * FROM employee WHERE is_active = 1
+    </select>
+
+    <!-- 查询所有离职员工 -->
+    <select id="selectInactiveEmployees" resultType="com.hrms.entity.Employee">
+        SELECT * FROM employee WHERE is_active = 0
+    </select>
+
+    <!-- 根据员工编号查询在职员工 -->
+    <select id="selectActiveEmployeeById" resultType="com.hrms.entity.Employee">
+        SELECT * FROM employee WHERE id = #{id} AND is_active = 1
+    </select>
+
+    <!-- 根据姓名查询在职员工 -->
+    <select id="selectActiveEmployeesByName" resultType="com.hrms.entity.Employee">
+        SELECT * FROM employee WHERE name = #{name} AND is_active = 1
+    </select>
+
+    <!-- 根据级别查询在职员工 -->
+    <select id="selectActiveEmployeesByLevel" resultType="com.hrms.entity.Employee">
+        SELECT * FROM employee WHERE level_id = #{levelId} AND is_active = 1
+    </select>
+
+    <!-- 根据部门查询在职员工 -->
+    <select id="selectActiveEmployeesByDepartment" resultType="com.hrms.entity.Employee">
+        SELECT * FROM employee WHERE department_id = #{departmentId} AND is_active = 1
+    </select>
+
+    <!-- 根据员工编号查询离职员工 -->
+    <select id="selectInactiveEmployeeById" resultType="com.hrms.entity.Employee">
+        SELECT * FROM employee WHERE id = #{id} AND is_active = 0
+    </select>
+
+    <!-- 根据姓名查询离职员工 -->
+    <select id="selectInactiveEmployeesByName" resultType="com.hrms.entity.Employee">
+        SELECT * FROM employee WHERE name = #{name} AND is_active = 0
+    </select>
+
+    <!-- 根据级别查询离职员工 -->
+    <select id="selectInactiveEmployeesByLevel" resultType="com.hrms.entity.Employee">
+        SELECT * FROM employee WHERE level_id = #{levelId} AND is_active = 0
+    </select>
+
+    <!-- 根据部门查询离职员工 -->
+    <select id="selectInactiveEmployeesByDepartment" resultType="com.hrms.entity.Employee">
+        SELECT * FROM employee WHERE department_id = #{departmentId} AND is_active = 0
+    </select>
+
+    <select id="selectEmployeeDetailsById" resultType="com.hrms.dto.EmployeeDetailsDTO">
+        SELECT
+            e.id AS id,
+            e.name AS name,
+            e.gender,
+            e.email,
+            e.phone,
+            e.entry_date AS entryDate,
+            e.is_active AS isActive,
+
+            d.id AS departmentId,
+            d.name AS departmentName,
+
+            l.id AS levelId,
+            l.name AS levelName,
+            l.base_salary AS baseSalary,
+
+            GROUP_CONCAT(s.name) AS skillNames
+        FROM employee e
+                 LEFT JOIN department d ON e.department_id = d.id
+                 LEFT JOIN level l ON e.level_id = l.id
+                 LEFT JOIN employee_skill es ON e.id = es.employee_id
+                 LEFT JOIN skill s ON es.skill_id = s.id
+        WHERE e.id = #{id}
+        GROUP BY e.id, d.id, l.id
+    </select>
+
+
+</mapper>

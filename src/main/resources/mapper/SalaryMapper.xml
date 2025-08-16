@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hrms.mapper.SalaryMapper">
+    <!-- 分页获取工资记录 -->
+    <select id="getSalariesByCondition" resultType="com.hrms.entity.Salary">
+        SELECT *
+        FROM salary
+        <where>
+            <if test="searchBy == 'id' and keyword != null">
+                AND id = #{keyword}
+            </if>
+            <if test="searchBy == 'name' and keyword != null">
+                AND employee_name LIKE CONCAT('%', #{keyword}, '%')
+            </if>
+        </where>
+    </select>
+    <select id="getSalaryReportByEmployeeId" resultType="com.hrms.dto.PersonalReportDTO">
+        SELECT
+            s.employee_id AS employeeId,
+            e.name AS name,
+            s.base_salary AS baseSalary,
+            s.bonus AS bonus,
+            s.penalty AS penalty,
+            (s.base_salary + s.bonus - s.penalty) AS totalSalary
+        FROM
+            salary s
+                LEFT JOIN
+            employee e ON s.employee_id = e.id
+        WHERE
+            s.employee_id = #{employeeId}
+    </select>
+
+</mapper>
