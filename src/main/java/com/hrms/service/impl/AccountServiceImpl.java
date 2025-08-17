@@ -9,6 +9,8 @@ import com.hrms.service.IAccountService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * <p>
  * 存储员工账户信息 服务实现类
@@ -37,7 +39,19 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
             queryWrapper.eq("id", accountId);
         }
         
-        return baseMapper.selectPage(page, queryWrapper);
+        // 手动计算总数
+        Long total = baseMapper.selectCount(queryWrapper);
+        page.setTotal(total);
+        page.setPages((long) Math.ceil((double) total / page.getSize()));
+
+        // 手动应用LIMIT和OFFSET
+        long offset = (page.getCurrent() - 1) * page.getSize();
+        queryWrapper.last("LIMIT " + page.getSize() + " OFFSET " + offset);
+
+        List<Account> records = baseMapper.selectList(queryWrapper);
+        page.setRecords(records);
+        
+        return page;
     }
 
     @Override

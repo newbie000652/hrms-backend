@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
+import java.util.List;
 
 /**
  * <p>
@@ -36,10 +37,23 @@ public class PerformanceServiceImpl extends ServiceImpl<PerformanceMapper, Perfo
         if ("id".equalsIgnoreCase(searchBy) && keyword != null) {
             queryWrapper.eq("employee_id", keyword);
         } else if ("name".equalsIgnoreCase(searchBy) && keyword != null) {
-            queryWrapper.like("remark", keyword); // 假设备注中可以搜索名字信息
+            queryWrapper.inSql("employee_id", 
+                "SELECT id FROM employee WHERE name LIKE '%" + keyword + "%'");
         }
 
-        return baseMapper.selectPage(page, queryWrapper);
+        // 手动计算总数
+        Long total = baseMapper.selectCount(queryWrapper);
+        page.setTotal(total);
+        page.setPages((long) Math.ceil((double) total / page.getSize()));
+
+        // 手动应用LIMIT和OFFSET
+        long offset = (page.getCurrent() - 1) * page.getSize();
+        queryWrapper.last("LIMIT " + page.getSize() + " OFFSET " + offset);
+
+        List<Performance> records = baseMapper.selectList(queryWrapper);
+        page.setRecords(records);
+        
+        return page;
     }
 
     @Override

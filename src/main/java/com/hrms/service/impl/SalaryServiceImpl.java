@@ -70,32 +70,23 @@ public class SalaryServiceImpl extends ServiceImpl<SalaryMapper, Salary> impleme
             }
         }
         
-        // 先查询总数
+        // 手动计算总数
         Long total = baseMapper.selectCount(queryWrapper);
         System.out.println("SalaryServiceImpl.getSalariesByCondition - total records: " + total);
         
-        // 测试直接查询所有数据
-        List<Salary> allSalaries = baseMapper.selectList(queryWrapper);
-        System.out.println("SalaryServiceImpl.getSalariesByCondition - all salaries count: " + allSalaries.size());
+        // 手动应用LIMIT和OFFSET
+        long offset = (page - 1) * size;
+        queryWrapper.last("LIMIT " + size + " OFFSET " + offset);
+
+        List<Salary> records = baseMapper.selectList(queryWrapper);
+        System.out.println("SalaryServiceImpl.getSalariesByCondition - paginated records: " + records.size());
         
-        // 尝试分页查询
-        IPage<Salary> result = baseMapper.selectPage(salaryPage, queryWrapper);
-        System.out.println("SalaryServiceImpl.getSalariesByCondition - result records: " + result.getRecords().size());
-        System.out.println("SalaryServiceImpl.getSalariesByCondition - result total: " + result.getTotal());
-        System.out.println("SalaryServiceImpl.getSalariesByCondition - result pages: " + result.getPages());
+        // 设置分页信息
+        salaryPage.setTotal(total);
+        salaryPage.setPages((long) Math.ceil((double) total / size));
+        salaryPage.setRecords(records);
         
-        // 如果分页查询失败，尝试使用XML中的方法
-        if (result.getTotal() == 0 && total > 0) {
-            System.out.println("SalaryServiceImpl.getSalariesByCondition - Trying XML method");
-            try {
-                result = baseMapper.getSalariesByCondition(salaryPage, searchBy, keyword);
-                System.out.println("SalaryServiceImpl.getSalariesByCondition - XML method result: " + result.getRecords().size());
-            } catch (Exception e) {
-                System.out.println("SalaryServiceImpl.getSalariesByCondition - XML method failed: " + e.getMessage());
-            }
-        }
-        
-        return result;
+        return salaryPage;
     }
 
     /**
